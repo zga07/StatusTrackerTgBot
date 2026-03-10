@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"statusTracker/internal/postgresDB"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -42,6 +44,10 @@ func main() {
 		log.Fatal("Ошибка создания бота: ", err)
 	}
 
+	bot.Handle("/start", func(c telebot.Context) error {
+		return c.Send("Здравствуйте, для отслеживания заказа введите трек-код отправленный вам по почте")
+	})
+
 	bot.Handle("/cancel", func(c telebot.Context) error {
 		if c.Sender().ID == adminID {
 			delete(adminStates, adminID)
@@ -68,7 +74,61 @@ func main() {
 	})
 
 	bot.Handle(telebot.OnText, func(c telebot.Context) error {
-		//TODO
+		text := c.Text()
+		if c.Sender().ID == adminID {
+			memory, exists := adminStates[adminID]
+			if exists {
+				switch memory.State {
+				case "waiting_desc":
+					var trackCode string
+					var err error
+					for range 5 {
+						trackCode = generateTrackCode()
+						err := postgresDB.AddOrder(db, trackCode, text)
+						if err == nil {
+							break
+						}
+					}
+					if err != nil {
+						delete(adminStates, adminID)
+						return c.Send("Ошибка коллизий (wtf), попробуйте ещё раз")
+					}
+					delete(adminStates, adminID)
+					return c.Send(fmt.Sprintf("Заказ создан!\nОписание: %s\nТрек-код: %s", text, trackCode))
+				case "waiting_track":
+					memory.TrackCode = strings.TrimSpace(text)
+					memory.State = "waiting_status"
+					return c.Send(fmt.Sprintf("Заказ: %s\nНапишите новый статус для заказа:", memory.TrackCode))
+				case "waiting_status":
+					var status string = text
+					chatID, err := postgresDB.UpdateOrderStatus(db, memory.TrackCode, status)
+					delete(adminStates, adminID)
+					if err != nil {
+						return c.Send("Ошибка, заказ с таким трек-кодом не найден")
+					}
+
+					if chatID != 0 {
+						bot.Send(&telebot.User{ID: chatID}, fmt.Sprintf("Статус вашего заказа %s обновился:\n%s", memory.TrackCode, status))
+					}
+					return c.Send(fmt.Sprintf("Статус заказа %s успешно изменен на %s", memory.TrackCode, status))
+				}
+			}
+		}
+		trackCode := strings.TrimSpace(text)
+
+		status, err := postgresDB.GetOrderStatus(db, trackCode)
+		if err != nil {
+			return c.Send("Заказ с таким трек-кодом не найден")
+		}
+
+		history, _ := postgresDB.GetOrderHistory(db, trackCode)
+		var result string
+		result = "История статусов:\n" + strings.Join(history, "\n")
+
+		postgresDB.RegisterUser(db, trackCode, c.Sender().ID)
+
+		message := fmt.Sprintf("Заказ: %s\nТекущий статус: %s\n%s", trackCode, status, result)
+		return c.Send(message)
 	})
 
 	bot.Start()

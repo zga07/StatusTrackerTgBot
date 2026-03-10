@@ -56,7 +56,7 @@ func RegisterUser(db *sql.DB, tracker string, userID int64) {
 }
 
 func AddOrder(db *sql.DB, trackCode, description string) error {
-	query := `INSERT INTO orders (track_code, user_email) VALUES ($1, $2)`
+	query := `INSERT INTO orders (track_code, description) VALUES ($1, $2)`
 	_, err := db.Exec(query, trackCode, description)
 	if err == nil {
 		addHistoryRecord(db, trackCode, "В обработке")
@@ -95,7 +95,7 @@ func GetOrderHistory(db *sql.DB, trackCode string) ([]string, error) {
 		if err := rows.Scan(&status, &changedAt); err != nil {
 			return nil, err
 		}
-		history = append(history, fmt.Sprintf("🕒 %s — %s", changedAt.Format("02.01.2006 15:04"), status))
+		history = append(history, fmt.Sprintf("%s — %s", changedAt.Format("02.01.2006 15:04"), status))
 	}
 	return history, nil
 }
