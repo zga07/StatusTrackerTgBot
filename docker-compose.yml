@@ -21,7 +21,8 @@ services:
     env_file:
       - .env
     environment:
-      DB_URL: "host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${DB_NAME} sslmode=disable"
+      - TZ=Asia/Yekaterinburg
+      - DB_URL=host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${DB_NAME} sslmode=disable
 
 volumes:
   pg_data:

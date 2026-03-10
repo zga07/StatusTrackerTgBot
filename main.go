@@ -84,7 +84,7 @@ func main() {
 					var err error
 					for range 5 {
 						trackCode = generateTrackCode()
-						err := postgresDB.AddOrder(db, trackCode, text)
+						err = postgresDB.AddOrder(db, trackCode, text)
 						if err == nil {
 							break
 						}
