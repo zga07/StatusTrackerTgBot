@@ -48,7 +48,10 @@ func CreateTable(db *sql.DB) {
 }
 
 func RegisterUser(db *sql.DB, tracker string, userID int64) {
-	query := `UPDATE orders SET tg_chat_id = $2, updated_at = CURRENT_TIMESTAMP WHERE track_code = $1`
+	query := `UPDATE orders
+			SET tg_chat_id = COALESCE(tg_chat_id, $2),
+			    updated_at = CURRENT_TIMESTAMP
+			WHERE track_code = $1`
 	_, err := db.Exec(query, tracker, userID)
 	if err != nil {
 		log.Println("Не удалось добавить пользователя:", err)
