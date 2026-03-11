@@ -22,13 +22,26 @@
 Создайте файл `.env` в корне проекта и заполните его своими данными:
 
 
-BOT_TOKEN=ваш_токен_от_BotFather
-ADMIN_ID=ваш_телеграм_id_цифрами
+BOT_TOKEN=botfather_token
+
+
+ADMIN_ID=tg_id
+
+
 DB_USER=admin
-DB_PASSWORD=ваш_пароль
-DB_NAME=user_base
+
+
+DB_PASSWORD=password
+
+
+DB_NAME=db_name
+
+
 DB_HOST=db
+
+
 DB_PORT=5432
+
 
 ### 2. Запуск Docker
 Запустите Docker и введите в терминале:
