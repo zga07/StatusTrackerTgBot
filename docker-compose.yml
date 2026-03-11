@@ -3,10 +3,12 @@ services:
     image: postgres:15-alpine
     container_name: status_tracker_bot_db
     restart: always
+    command: -c timezone=Asia/Yekaterinburg
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      - TZ=Asia/Yekaterinburg
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     ports:
       - "${DB_PORT}:5432"
     volumes:

@@ -6,6 +6,7 @@ COPY . .
 RUN go build -o bot main.go
 
 FROM alpine:latest
+RUN apk add --no-cache tzdata
 WORKDIR /root/
 COPY --from=builder /app/bot .
 COPY .env .
